@@ -2,7 +2,6 @@
 #define UKF_H
 #include "Eigen/Dense"
 #include "measurement_package.h"
-#include "ground_truth_package.h"
 #include <vector>
 
 using Eigen::MatrixXd;
@@ -84,7 +83,6 @@ public:
   /**
    * ProcessMeasurement
    * @param meas_package The latest measurement data of either radar or laser
-   * @param gt_package The ground truth of the state x at measurement time
    */
   void ProcessMeasurement(MeasurementPackage meas_package);
 

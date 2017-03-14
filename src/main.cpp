@@ -4,7 +4,6 @@
 #include <vector>
 #include "ukf.h"
 #include "measurement_package.h"
-#include "ground_truth_package.h"
 #include <fstream>
 #include <sstream>
 #include <stdlib.h>
@@ -147,6 +146,8 @@ int main(int argc, char* argv[]) {
       out_file_ << ro * cos(phi) << "\t"; // p1_meas
       out_file_ << ro * sin(phi) << "\t"; // p2_meas
     }
+
+    out_file_ << "\n";
   }
 
   // close files

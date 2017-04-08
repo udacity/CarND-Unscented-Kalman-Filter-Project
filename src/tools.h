@@ -6,19 +6,14 @@
 class Tools {
 public:
     /**
-     * Constructor.
-     */
-    Tools();
-    
-    /**
-     * Destructor.
-     */
-    virtual ~Tools();
-    
-    /**
      * A helper method to calculate RMSE.
      */
-    Eigen::VectorXd CalculateRMSE(const std::vector<Eigen::VectorXd> &estimations, const std::vector<Eigen::VectorXd> &ground_truth);
+    static Eigen::VectorXd CalculateRMSE(const std::vector<Eigen::VectorXd> &estimations, const std::vector<Eigen::VectorXd> &ground_truth);
+    
+    /**
+     * Ensure that input angle is between -PI and PI.
+     */
+    static double NormalizeAngle(const double angle);
     
 };
 

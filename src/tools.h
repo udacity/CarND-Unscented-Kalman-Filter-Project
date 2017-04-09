@@ -15,6 +15,16 @@ public:
      */
     static double NormalizeAngle(const double angle);
     
+    /**
+     *
+     */
+    static Eigen::VectorXd calculateWeights(const int n_aug, const double lambda);
+    
+    /**
+     *
+     */
+    static double calculateNIS(const Eigen::VectorXd& z_diff, const Eigen::MatrixXd &S);
+    
 };
 
 #endif /* TOOLS_H_ */

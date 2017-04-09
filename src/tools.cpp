@@ -58,3 +58,21 @@ double Tools::NormalizeAngle(const double angle)
     
     return result;
 }
+
+VectorXd Tools::calculateWeights(const int n_aug, const double lambda)
+{
+    VectorXd weights = VectorXd(2*n_aug+1);
+    
+    weights(0) = lambda/(lambda+n_aug);
+    for (int i=1; i<2*n_aug+1; i++)
+    {
+        weights(i) = 0.5/(lambda+n_aug);
+    }
+    
+    return weights;
+}
+
+double Tools::calculateNIS(const VectorXd& z_diff, const MatrixXd &S)
+{
+    return (z_diff.transpose()) * (S.inverse()) * z_diff;
+}

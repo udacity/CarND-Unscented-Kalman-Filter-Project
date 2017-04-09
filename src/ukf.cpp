@@ -5,10 +5,10 @@
 using namespace std;
 
 // Define all constant tuning parameters
-const double UKF::C_STD_ACC = 30;
-const double UKF::C_STD_YAWDD = 30;
-const double UKF::C_STD_LASPX = 0.15;
-const double UKF::C_STD_LASPY = 0.15;
+const double UKF::C_STD_ACC = 2.2;
+const double UKF::C_STD_YAWDD = 0.9;
+const double UKF::C_STD_LASPX = 0.16;
+const double UKF::C_STD_LASPY = 0.16;
 const double UKF::C_STD_RADR = 0.3;
 const double UKF::C_STD_RADPHI = 0.03;
 const double UKF::C_STD_RADRD = 0.3;
@@ -33,19 +33,19 @@ UKF::UKF():
     R_Radar_(getRadarMeasurementNoise()),
     R_Lidar_(getLidarMeasurementNoise())
 {
-    // state of the filter. not initialised yet
+    // State of the filter
     is_initialized_ = false;
     
-    // previous timestamp
+    // Previous timestamp
     time_us_ = 0;
     
-    // initial state vector
+    // Initial state vector
     x_ = VectorXd(n_x_);
     
-    // initial covariance matrix
+    // Initial covariance matrix
     P_ = MatrixXd(n_x_, n_x_);
 
-    // predicted sigma points matrix
+    // Predicted sigma points matrix
     Xsig_pred_ = MatrixXd(n_x_, 2 * n_aug_ + 1);
 }
 
@@ -140,8 +140,8 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package)
             0.0;
             
             // Initialize state covariance matrix
-            P_ << std_laspx_sq_, 0.,                    0.,            0.,            0., // use lidar measurement uncertainty
-            0.,                  std_laspy_sq_, 0.,            0.,            0., // use lidar measurement uncertainty
+            P_ << std_laspx_sq_, 0.,                    0.,            0.,            0.,
+            0.,                  std_laspy_sq_, 0.,            0.,            0.,
             0.,                  0.,                    0.1,           0.,            0.,
             0.,                  0.,                    0.,            0.1,           0.,
             0.,                  0.,                    0.,            0.,            0.1;
@@ -174,7 +174,7 @@ void UKF::UpdateLidar(const MeasurementPackage meas_package)
     MatrixXd S = MatrixXd(n_z,n_z);
     
     // Predict lidar measurement in augmented state space
-    PredictLidarMeasurement(&Zsig, &z_pred, &S, n_z);
+    PredictLidarMeasurement(&Zsig, &z_pred, &S);
     
     // Update state with current measurement
     const VectorXd z = meas_package.raw_measurements_;
@@ -196,7 +196,7 @@ void UKF::UpdateRadar(const MeasurementPackage meas_package)
     MatrixXd S = MatrixXd(n_z,n_z);
     
     // Predict radar measurement in augmented state space
-    PredictRadarMeasurement(&Zsig, &z_pred, &S, n_z);
+    PredictRadarMeasurement(&Zsig, &z_pred, &S);
     
     // Update state with current measurement
     VectorXd z = meas_package.raw_measurements_;
@@ -300,7 +300,6 @@ MatrixXd UKF::SigmaPointPrediction(const double delta_t) const
 
 void UKF::PredictMeanAndCovariance(VectorXd* x_out, MatrixXd* P_out) const
 {
-    
     // Short access to vector for predicted state
     VectorXd& x = *x_out;
     
@@ -326,7 +325,7 @@ void UKF::PredictMeanAndCovariance(VectorXd* x_out, MatrixXd* P_out) const
     }
 }
 
-void UKF::PredictLidarMeasurement(MatrixXd* Zsig_out, VectorXd* z_out, MatrixXd* S_out, const int n_z) const
+void UKF::PredictLidarMeasurement(MatrixXd* Zsig_out, VectorXd* z_out, MatrixXd* S_out) const
 {
     // Short access to measurement matrix
     MatrixXd& Zsig = *Zsig_out;
@@ -343,10 +342,10 @@ void UKF::PredictLidarMeasurement(MatrixXd* Zsig_out, VectorXd* z_out, MatrixXd*
     }
     
     // Predict measurement
-    PredictMeasurement(z_out, S_out, Zsig, R_Lidar_, n_z);
+    PredictMeasurement(z_out, S_out, Zsig, R_Lidar_, n_z_lidar_);
 }
 
-void UKF::PredictRadarMeasurement(MatrixXd* Zsig_out, VectorXd* z_out, MatrixXd* S_out, const int n_z) const
+void UKF::PredictRadarMeasurement(MatrixXd* Zsig_out, VectorXd* z_out, MatrixXd* S_out) const
 {
     // Transform sigma points into RADAR measurement space
     MatrixXd& Zsig = *Zsig_out;
@@ -391,7 +390,7 @@ void UKF::PredictRadarMeasurement(MatrixXd* Zsig_out, VectorXd* z_out, MatrixXd*
     }
     
     // Predict measurement
-    PredictMeasurement(z_out, S_out, Zsig, R_Radar_, n_z);
+    PredictMeasurement(z_out, S_out, Zsig, R_Radar_, n_z_radar_);
 }
 
 void UKF::PredictMeasurement(VectorXd* z_out, MatrixXd* S_out, const MatrixXd &Zsig, const MatrixXd &R, const int n_z) const

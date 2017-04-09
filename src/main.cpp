@@ -8,6 +8,7 @@
 #include "ukf.h"
 #include "ground_truth_package.h"
 #include "measurement_package.h"
+#include "tools.h"
 
 using namespace std;
 using Eigen::MatrixXd;

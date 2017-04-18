@@ -16,7 +16,7 @@ Self-Driving Car Engineer Nanodegree Program
 3. Compile: `cmake .. && make`
 4. Run it: `./UnscentedKF path/to/input.txt path/to/output.txt`. You can find
    some sample inputs in 'data/'.
-    - eg. `./UnscentedKF ../data/sample-laser-radar-measurement-data-1.txt output.txt`
+    - eg. `./UnscentedKF ../data/obj_pose-laser-radar-synthetic-input.txt`
 
 ## Editor Settings
 

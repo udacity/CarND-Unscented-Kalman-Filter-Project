@@ -178,7 +178,7 @@ int main(int argc, char* argv[]) {
       out_file_ << "lidar" << "\t";
 
       // NIS value
-      out_file_ << ukf.NIS_laser_ << "\t"; 
+      out_file_ << ukf.NIS_laser_ << "\t";
 
       // output the lidar sensor measurement px and py
       out_file_ << measurement_pack_list[k].raw_measurements_(0) << "\t";

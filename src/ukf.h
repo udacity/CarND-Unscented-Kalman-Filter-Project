@@ -13,101 +13,72 @@ using Eigen::VectorXd;
 
 class UKF {
 public:
+  bool is_initialized_; ///* initially set to false, set to true in first call of ProcessMeasurement
+  bool use_laser_;      ///* if this is false, laser measurements will be ignored (except for init)
+  bool use_radar_;      ///* if this is false, radar measurements will be ignored (except for init)
+  int n_x_;             ///* State dimension
+  int n_aug_;           ///* Augmented state dimension
+  VectorXd x_;          ///* state vector: [pos1 pos2 vel_abs yaw_angle yaw_rate] in SI units and rad
+  MatrixXd P_;          ///* state covariance matrix
+  MatrixXd Xsig_pred_;  ///* predicted sigma points matrix
+  long long time_us_;   ///* time when the state is true, in us
+  double std_a_;        ///* Process noise standard deviation longitudinal acceleration in m/s^2
+  double std_yawdd_;    ///* Process noise standard deviation yaw acceleration in rad/s^2
+  double std_laspx_;    ///* Laser measurement noise standard deviation position1 in m
+  double std_laspy_;    ///* Laser measurement noise standard deviation position2 in m
+  double std_radr_;     ///* Radar measurement noise standard deviation radius in m
+  double std_radphi_;   ///* Radar measurement noise standard deviation angle in rad
+  double std_radrd_ ;   ///* Radar measurement noise standard deviation radius change in m/s
+  VectorXd weights_;    ///* Weights of sigma points
+  double lambda_;       ///* Sigma point spreading parameter
+  double NIS_radar_;    ///* the current NIS for radar
+  double NIS_laser_;    ///* the current NIS for laser
 
-  ///* initially set to false, set to true in first call of ProcessMeasurement
-  bool is_initialized_;
-
-  ///* if this is false, laser measurements will be ignored (except for init)
-  bool use_laser_;
-
-  ///* if this is false, radar measurements will be ignored (except for init)
-  bool use_radar_;
-
-  ///* state vector: [pos1 pos2 vel_abs yaw_angle yaw_rate] in SI units and rad
-  VectorXd x_;
-
-  ///* state covariance matrix
-  MatrixXd P_;
-
-  ///* predicted sigma points matrix
-  MatrixXd Xsig_pred_;
-
-  ///* time when the state is true, in us
-  long long time_us_;
-
-  ///* Process noise standard deviation longitudinal acceleration in m/s^2
-  double std_a_;
-
-  ///* Process noise standard deviation yaw acceleration in rad/s^2
-  double std_yawdd_;
-
-  ///* Laser measurement noise standard deviation position1 in m
-  double std_laspx_;
-
-  ///* Laser measurement noise standard deviation position2 in m
-  double std_laspy_;
-
-  ///* Radar measurement noise standard deviation radius in m
-  double std_radr_;
-
-  ///* Radar measurement noise standard deviation angle in rad
-  double std_radphi_;
-
-  ///* Radar measurement noise standard deviation radius change in m/s
-  double std_radrd_ ;
-
-  ///* Weights of sigma points
-  VectorXd weights_;
-
-  ///* State dimension
-  int n_x_;
-
-  ///* Augmented state dimension
-  int n_aug_;
-
-  ///* Sigma point spreading parameter
-  double lambda_;
-
-  ///* the current NIS for radar
-  double NIS_radar_;
-
-  ///* the current NIS for laser
-  double NIS_laser_;
-
-  /**
-   * Constructor
-   */
   UKF();
-
-  /**
-   * Destructor
-   */
+  UKF(bool verboseMode, double std_a, double std_yawdd);
   virtual ~UKF();
 
   /**
    * ProcessMeasurement
    * @param meas_package The latest measurement data of either radar or laser
    */
-  void ProcessMeasurement(MeasurementPackage meas_package);
+  void ProcessMeasurement(const MeasurementPackage& meas_package);
 
   /**
    * Prediction Predicts sigma points, the state, and the state covariance
    * matrix
    * @param delta_t Time between k and k+1 in s
    */
-  void Prediction(double delta_t);
+  void Prediction(const double delta_t);
 
   /**
    * Updates the state and the state covariance matrix using a laser measurement
    * @param meas_package The measurement at k+1
    */
-  void UpdateLidar(MeasurementPackage meas_package);
+  void UpdateLidar(const MeasurementPackage& meas_package);
 
   /**
    * Updates the state and the state covariance matrix using a radar measurement
    * @param meas_package The measurement at k+1
    */
-  void UpdateRadar(MeasurementPackage meas_package);
+  void UpdateRadar(const MeasurementPackage& meas_package);
+
+private:
+  constexpr static int n_z_ = 3;
+  bool verboseMode_;
+  MatrixXd I;          // identity matrix
+  MatrixXd H_laser_;   // measurement matrix - laser
+  MatrixXd Ht_laser_;  // transpose of measurement matrix - laser
+  MatrixXd R_laser_;   // measurement covariance matrix
+
+  void Initialize(const MeasurementPackage& meas_package);
+  void GenerateSigmaPoints();
+  void AugmentSigmaPoints(MatrixXd& Xsig_aug, MatrixXd& P_aug);
+  void SigmaPointPrediction(const MatrixXd& Xsig_aug, const MatrixXd& P_aug, double delta_t);
+  void PredictMeanAndCovariance();
+
+  void PredictRadarMeasurement(MatrixXd& Zsig, VectorXd& z_out, MatrixXd& S_out);
+  void UpdateState(const MatrixXd& Zsig, const VectorXd& z_pred, const MatrixXd& S, const VectorXd& z);
 };
 
 #endif /* UKF_H */

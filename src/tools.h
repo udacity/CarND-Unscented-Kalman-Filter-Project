@@ -5,21 +5,15 @@
 
 class Tools {
 public:
-  /**
-  * Constructor.
-  */
   Tools();
-
-  /**
-  * Destructor.
-  */
   virtual ~Tools();
 
   /**
   * A helper method to calculate RMSE.
   */
-  Eigen::VectorXd CalculateRMSE(const std::vector<Eigen::VectorXd> &estimations, const std::vector<Eigen::VectorXd> &ground_truth);
-
+  static Eigen::VectorXd CalculateRMSE(const std::vector<Eigen::VectorXd> &estimations, const std::vector<Eigen::VectorXd> &ground_truth);
+  static void NormalizeAngle(double& a) { while (a > M_PI) a -= 2.*M_PI; while (a <-M_PI) a += 2.*M_PI; }
+  static std::string PrintMatrix(const Eigen::MatrixXd& m, const char FS='\t');
 };
 
 #endif /* TOOLS_H_ */

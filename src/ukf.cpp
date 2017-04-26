@@ -180,10 +180,10 @@ void UKF::UpdateRadar(const MeasurementPackage& meas_package) {
 void UKF::GenerateSigmaPoints() {
   auto A = MatrixXd{ P_.llt().matrixL() };
   Xsig_pred_.col(0) = x_;
-  auto Pp = sqrt(lambda_ + n_aug_) * A;
-  for (auto i = 0; i < n_aug_; ++i) {
+  auto Pp = sqrt(lambda_ + n_x_) * A;
+  for (auto i = 0; i < n_x_; ++i) {
     Xsig_pred_.col(i + 1) = x_ + Pp.col(i);
-    Xsig_pred_.col(i + n_aug_ + 1) = x_ - Pp.col(i);
+    Xsig_pred_.col(i + n_x_ + 1) = x_ - Pp.col(i);
   }
 }
 
@@ -246,9 +246,11 @@ void UKF::PredictMeanAndCovariance() {
   }
 }
 
+constexpr int UKF::n_z_; // define storage, needed, otherwise get link errors with gcc
+
 void UKF::PredictRadarMeasurement(MatrixXd& Zsig, VectorXd& z_pred, MatrixXd& S) {
   //transform sigma points into measurement space
-  Zsig = MatrixXd(n_z_, 2 * n_aug_ + 1);
+  Zsig = MatrixXd(UKF::n_z_, 2 * n_aug_ + 1);
   Zsig.fill(0.0);
   for (auto i = 0; i<2 * n_aug_ + 1; ++i) {
     double px = Xsig_pred_(0, i), py = Xsig_pred_(1, i), v = Xsig_pred_(2, i), yaw = Xsig_pred_(3, i);
@@ -259,14 +261,14 @@ void UKF::PredictRadarMeasurement(MatrixXd& Zsig, VectorXd& z_pred, MatrixXd& S)
   }
 
   //mean predicted measurement
-  z_pred = VectorXd(n_z_);
+  z_pred = VectorXd(UKF::n_z_);
   z_pred.fill(0.0);
   for (auto i = 0; i<2 * n_aug_ + 1; ++i) {
     z_pred += weights_(i)*Zsig.col(i);
   }
 
   //measurement covariance matrix S
-  S = MatrixXd(n_z_, n_z_);
+  S = MatrixXd(UKF::n_z_, UKF::n_z_);
   //calculate measurement covariance matrix S
   S.fill(0.0);
   S(0, 0) = std_radr_*std_radr_; S(1, 1) = std_radphi_*std_radphi_; S(2, 2) = std_radrd_*std_radrd_;
@@ -279,7 +281,7 @@ void UKF::PredictRadarMeasurement(MatrixXd& Zsig, VectorXd& z_pred, MatrixXd& S)
 
 void UKF::UpdateState(const MatrixXd& Zsig, const VectorXd& z_pred, const MatrixXd& S, const VectorXd& z) {
   //create matrix for cross correlation Tc
-  MatrixXd Tc = MatrixXd(n_x_, n_z_);
+  MatrixXd Tc = MatrixXd(n_x_, UKF::n_z_);
 
   //calculate cross correlation matrix
   Tc.fill(0.0);

@@ -64,7 +64,7 @@ public:
   void UpdateRadar(const MeasurementPackage& meas_package);
 
 private:
-  constexpr static int n_z_ = 3;
+  static constexpr int n_z_ = 3;
   bool verboseMode_;
   MatrixXd I;          // identity matrix
   MatrixXd H_laser_;   // measurement matrix - laser

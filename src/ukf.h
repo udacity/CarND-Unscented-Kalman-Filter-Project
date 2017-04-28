@@ -65,8 +65,13 @@ public:
   ///* Augmented state dimension
   int n_aug_;
 
+  int n_sig_;
+
   ///* Sigma point spreading parameter
   double lambda_;
+
+  ///* Sigma point spreading parameter
+  double lambda_aug_;
 
   ///* the current NIS for radar
   double NIS_radar_;
@@ -108,6 +113,19 @@ public:
    * @param meas_package The measurement at k+1
    */
   void UpdateRadar(MeasurementPackage meas_package);
+  MatrixXd GetSigmaPoints();
+
+  MatrixXd AugmentSigmaPoints();
+
+  MatrixXd AugmentCovarianceMatrix();
+
+  void PredictSigmaPoints(MatrixXd x_aug, double time_elapsed);
+
+  void GetStateFromSigmaPoints();
+
+  MatrixXd LidarGetZSigPoints(int n_z);
+
+  VectorXd GetWeights();
 };
 
 #endif /* UKF_H */

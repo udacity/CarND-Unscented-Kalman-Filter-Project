@@ -7,6 +7,7 @@
 #include <string>
 #include <fstream>
 #include "tools.h"
+#include "OnlineStats.h"
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
@@ -35,7 +36,7 @@ public:
   double NIS_laser_;    ///* the current NIS for laser
 
   UKF();
-  UKF(bool verboseMode, double std_a, double std_yawdd);
+  UKF(bool verboseMode, double std_a, double std_yawdd, bool dynamicProcesNoise, bool useLaser, bool useRadar);
   virtual ~UKF();
 
   /**
@@ -66,14 +67,20 @@ public:
 private:
   static constexpr int n_z_ = 3;
   bool verboseMode_;
+  bool dynamicProcesNoise_;  // if true: update project noise params (accelaration & yaw_rate change) dynamically
   MatrixXd I;          // identity matrix
   MatrixXd H_laser_;   // measurement matrix - laser
   MatrixXd Ht_laser_;  // transpose of measurement matrix - laser
   MatrixXd R_laser_;   // measurement covariance matrix
 
+  OnlineStats accelaration_stats_; // for dynamic stdev of acceleration
+  OnlineStats yaw_dd_stats_;       // for dynamic stdev of yaw_rate change
+  double  v0_;        // previous velocity
+  double  yaw_d0_;    // previous yaw_rate
+
   void Initialize(const MeasurementPackage& meas_package);
-  void GenerateSigmaPoints();
-  void AugmentSigmaPoints(MatrixXd& Xsig_aug, MatrixXd& P_aug);
+  void GenerateSigmaPoints(); // not used
+  void AugmentedSigmaPoints(MatrixXd& Xsig_aug, MatrixXd& P_aug);
   void SigmaPointPrediction(const MatrixXd& Xsig_aug, const MatrixXd& P_aug, double delta_t);
   void PredictMeanAndCovariance();
 

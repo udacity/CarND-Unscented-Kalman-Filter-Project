@@ -1,8 +1,10 @@
 #include <sstream>
 #include <iostream>
 #include <iomanip>
+#include <numeric>
 #include "tools.h"
 
+using Eigen::Vector2d;
 using Eigen::VectorXd;
 using Eigen::MatrixXd;
 using std::vector;
@@ -37,15 +39,20 @@ Tools::~Tools() {}
   return rmse;
 }
 
-/*static*/ string Tools::PrintMatrix(const MatrixXd& m, const char FS) {
-  stringstream sstr;
-  sstr << std::setprecision(3);
-  for (auto row = 0; row < m.rows(); ++row)
-  {
-    sstr << m(row, 0);
-    for (auto col = 1; col < m.cols(); ++col)
-      sstr << FS << m(row, col);
-    sstr << std::endl;
+/* static */ VectorXd Tools::CalculateStdDev(const std::vector<VectorXd>& process_state) {
+  // standard deviation of population. ref https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+  VectorXd retVal;
+  auto N = process_state.size();
+  if (N < 1) return retVal;
+  auto K = process_state[0];
+  retVal = VectorXd(process_state[0].rows()); retVal.fill(0.0);
+  auto sum = retVal; auto sum2 = retVal;
+  for (auto i = 0u; i < N; ++i) {
+    auto d = process_state[i] - K;
+    sum += d; 
+    sum2 += d.cwiseProduct(d);
   }
-  return sstr.str();
+  retVal = (sum2 - (sum.cwiseProduct(sum) / N)) / N; // (n-1) for sample
+  retVal = retVal.array().sqrt();
+  return retVal;
 }

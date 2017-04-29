@@ -13,10 +13,11 @@ using std::vector;
 /**
  * Initializes Unscented Kalman filter
  */
-UKF::UKF() : UKF(false, std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()) {}
-UKF::UKF(bool verboseMode, double std_a, double std_yawdd) : verboseMode_(verboseMode), is_initialized_(false), time_us_(0) {
-  use_laser_ = true;    // if this is false, laser measurements will be ignored (except during init)
-  use_radar_ = true;    // if this is false, radar measurements will be ignored (except during init)
+UKF::UKF() : UKF(false, std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(), false, true, true) {}
+UKF::UKF(bool verboseMode, double std_a, double std_yawdd, bool dynamicProcesNoise, bool useLaser, bool useRadar)
+  : verboseMode_(verboseMode), is_initialized_(false), time_us_(0), dynamicProcesNoise_(dynamicProcesNoise) {
+  use_laser_ = useLaser;// if this is false, laser measurements will be ignored (except during init)
+  use_radar_ = useRadar;// if this is false, radar measurements will be ignored (except during init)
   n_x_ = 5;             // State dimension
   n_aug_ = 2 + n_x_;    // Augmented state dimension
   lambda_ = 3 - n_aug_; // spread parameter
@@ -50,12 +51,12 @@ UKF::UKF(bool verboseMode, double std_a, double std_yawdd) : verboseMode_(verbos
     0.0, 0.0, 0.0, 1.0, 0.0,
     0.0, 0.0, 0.0, 0.0, 1.0;
 
-  P_ << // I;
+  P_ << // rather than identity, intialise to various standard deviations
     std_laspx_, 0.0, 0.0, 0.0, 0.0,
     0.0, std_laspy_, 0.0, 0.0, 0.0,
     0.0, 0.0, std_radrd_, 0.0, 0.0,
     0.0, 0.0, 0.0, std_radphi_, 0.0,
-    0.0, 0.0, 0.0, 0.0, std_radphi_;
+    0.0, 0.0, 0.0, 0.0, std_radphi_; // std dev of yaw_rate not available, use that of phi
 
   H_laser_ = MatrixXd(2, 5);
   H_laser_ << // measurement mapper - laser
@@ -67,6 +68,13 @@ UKF::UKF(bool verboseMode, double std_a, double std_yawdd) : verboseMode_(verbos
   R_laser_ << //measurement covariance matrix - laser
     std_laspx_*std_laspx_, 0.0,
     0.0, std_laspy_*std_laspy_;
+
+  if (dynamicProcesNoise_) {
+    accelaration_stats_.addData(std_a_);
+    yaw_dd_stats_.addData(std_yawdd_);
+    v0_ = std_a_;         // initialise velocity to std dev
+    yaw_d0_ = std_yawdd_; // initialise yaw_rate change to std dev
+  }
 }
 
 UKF::~UKF() {}
@@ -125,6 +133,20 @@ void UKF::ProcessMeasurement(const MeasurementPackage& meas_package) {
     std::cerr << "x_ = \t" << x_(0) << "\t" << x_(1) << "\t" << x_(2) << "\t" << x_(3) << "\t" << x_(4) << std::endl;
     std::cerr << "P_ = " << std::endl << P_ << std::endl;
   }
+  if (dynamicProcesNoise_) {
+    auto accelaration = (x_(2) - v0_) / delta_t;
+    auto yaw_dd = (x_(4) - yaw_d0_) / delta_t;
+
+    if (fabs(accelaration) < 3 * std_a_) { // if accelaration isn't too wild
+      accelaration_stats_.addData(accelaration);
+      std_a_ = accelaration_stats_.stdevs();
+    }
+    if (fabs(yaw_dd) < 3 * std_yawdd_) {  // if yawdd isn't too wild
+      yaw_dd_stats_.addData(yaw_dd);
+      std_yawdd_ = yaw_dd_stats_.stdevs();
+    }
+    if (verboseMode_) std::cerr << "NOISE UPDATED: std_a=" << std_a_ << ", std_yawdd=" << std_yawdd_ << std::endl;
+  }
 }
 
 /**
@@ -133,9 +155,9 @@ void UKF::ProcessMeasurement(const MeasurementPackage& meas_package) {
  * measurement and this one.
  */
 void UKF::Prediction(const double delta_t) {
-  GenerateSigmaPoints();
+  //GenerateSigmaPoints();
   MatrixXd Xsig_aug; MatrixXd P_aug;
-  AugmentSigmaPoints(Xsig_aug, P_aug);
+  AugmentedSigmaPoints(Xsig_aug, P_aug);
   SigmaPointPrediction(Xsig_aug, P_aug, delta_t);
   PredictMeanAndCovariance();
 }
@@ -177,7 +199,7 @@ void UKF::UpdateRadar(const MeasurementPackage& meas_package) {
   UpdateState(Zsig, z_pred, S, z);
 }
 
-void UKF::GenerateSigmaPoints() {
+void UKF::GenerateSigmaPoints() { // not used
   auto A = MatrixXd{ P_.llt().matrixL() };
   Xsig_pred_.col(0) = x_;
   auto Pp = sqrt(lambda_ + n_x_) * A;
@@ -187,7 +209,7 @@ void UKF::GenerateSigmaPoints() {
   }
 }
 
-void UKF::AugmentSigmaPoints(MatrixXd& Xsig_aug, MatrixXd& P_aug) {
+void UKF::AugmentedSigmaPoints(MatrixXd& Xsig_aug, MatrixXd& P_aug) {
   //create augmented mean state
   auto x_aug = VectorXd(n_aug_);
   x_aug.head(n_x_) = x_; x_aug(n_x_) = 0; x_aug(n_x_ + 1) = 0;

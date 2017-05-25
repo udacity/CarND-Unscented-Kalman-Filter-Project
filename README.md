@@ -1,68 +1,44 @@
-# Run Away Robot with Unscented Kalman Filter Project Starter Code
+# Unscented Kalman Filter Project Starter Code
 Self-Driving Car Engineer Nanodegree Program
 
----
-
-Overview
-
-This repository contains all the code needed to complete the Project 2: Run Away Robot with Unscented Kalman Filter in Udacity's Self-Driving Car Nanodegree.
-
-Project Introduction
-
-In this project, not only do you implement an UKF, but also use it to catch an escaped robot driving in a circular path. 
-The run away robot will be being sensed by a stationary sensor, that is able to measure both noisy lidar and radar data. The capture vehicle will need to use these measurements to close in on the run away bot. To capture the run away bot the capture vehicle needs to come within .1 unit distance of its position. However the capture car and the run away bot have the same max velocity, so if the capture vehicle wants to catch the robot, it will need to predict where the robot will be ahead of time.
-
-Running the Code
+In this project utilize an Unscented Kalman Filter to estimate the state of a moving object of interest with noisy lidar and radar measurements. Passing the project requires obtaining RMSE values that are lower that the tolerance outlined in the project reburic. 
 
 This project involves the Term 2 Simulator which can be downloaded [here](https://github.com/udacity/self-driving-car-sim/releases)
 
-This repository includes two files that can be used to set up and intall uWebSocketIO for either Linux or Mac systems. For windows you can use either Docker, VMware, or even Windows 10 Bash on Ubuntu to install uWebSocketIO.
+This repository includes two files that can be used to set up and intall [uWebSocketIO](https://github.com/uWebSockets/uWebSockets) for either Linux or Mac systems. For windows you can use either Docker, VMware, or even [Windows 10 Bash on Ubuntu](https://www.howtogeek.com/249966/how-to-install-and-use-the-linux-bash-shell-on-windows-10/) to install uWebSocketIO. 
 
 Once the install for uWebSocketIO is complete, the main program can be built and ran by doing the following from the project top directory.
 
-mkdir build 
+1. mkdir build
+2. cd build
+3. cmake ..
+4. make
+5. ./UnscentedKF
 
-cd build 
+Note that the programs that need to be written to accomplish the project are src/ukf.cpp, src/ukf.h, tools.cpp, and tools.h
 
-cmake .. make 
-
-./UnscentedKF
-
-Note that the programs that need to be written to accomplish the project are src/ukf.cpp, ukf.h, and main.cpp which will use some stragety to catch the robot, just going to the robots current esimtated position will not be enough since the capture vehicle is not fast enough. There are a number of different strageties you can use to try to catch the robot, but all will likely involve prediciting where the robot will be in the future which the UKF can do. Also remember that the run away robot is simplying moving a circular path without any noise in its movements.
-
+The program main.cpp has already been filled out, but feel free to modify it.
 
 Here is the main protcol that main.cpp uses for uWebSocketIO in communicating with the simulator.
 
+
 INPUT: values provided by the simulator to the c++ program
 
-// sense noisy position data from the simulator
-
-// current position state of the capture vehicle, called hunter
-
-["hunter_x"]
-
-["hunter_y"]
-
-["hunter_heading"]
-
-// get noisy lidar and radar measurments from the run away robot.
-
-["lidar_measurement"]
-
-["radar_measurement"]
+["sensor_measurement"] => the measurment that the simulator observed (either lidar or radar)
 
 
 OUTPUT: values provided by the c++ program to the simulator
 
-// best particle values used for calculating the error evaluation
+["estimate_x"] <= kalman filter estimated position x
+["estimate_y"] <= kalman filter estimated position y
+["rmse_x"]
+["rmse_y"]
+["rmse_vx"]
+["rmse_vy"]
 
-["turn"] <= the desired angle of the capture car "hunter" no limit for the anlge
+---
 
-["dist"] <= the desired distance to move the capture car "hunter" can't move faster than run away robot
-
-
-
-## Dependencies
+## Other Important Dependencies
 
 * cmake >= v3.5
 * make >= v4.1

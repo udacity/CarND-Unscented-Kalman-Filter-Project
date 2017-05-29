@@ -56,10 +56,10 @@ int main()
         if (event == "telemetry") {
           // j[1] is the data JSON object
           
-          string sensor_measurment = j[1]["sensor_measurement"];
+          string sensor_measurement = j[1]["sensor_measurement"];
           
           MeasurementPackage meas_package;
-          istringstream iss(sensor_measurment);
+          istringstream iss(sensor_measurement);
     	  long long timestamp;
 
     	  // reads first element from the current line

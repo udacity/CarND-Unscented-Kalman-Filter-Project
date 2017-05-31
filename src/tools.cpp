@@ -15,6 +15,8 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
   TODO:
     * Calculate the RMSE here.
   */
+  VectorXd a(1, 1);
+  return a;
 }
 
 MatrixXd Tools::NormalizeAngle(MatrixXd &Z_diff, int dim) {
@@ -45,7 +47,9 @@ MatrixXd Tools::Cart2Polar(const MatrixXd &Xsig) {
   VectorXd v1 = cos(yaw.array()) * v.array();
   VectorXd v2 = sin(yaw.array()) * v.array();
   VectorXd r = sqrt(p_x.array().pow(2) + p_y.array().pow(2));
-  VectorXd phi = atan2(p_y.array(), p_x.array());
+  // How to do element wise atan2 in eigen?
+//  VectorXd phi = atan2(p_y.array(), p_x.array());
+  VectorXd phi = VectorXd::Zero(width);
   VectorXd r_dot = VectorXd::Zero(width);
 
   double_t threshold = 1e-3;
@@ -55,6 +59,7 @@ MatrixXd Tools::Cart2Polar(const MatrixXd &Xsig) {
     } else {
       r_dot(i) = (p_x(i) * v1(i) + p_y(i) * v2(i))/r(i);
     }
+    phi(i) = atan2(p_y(i), p_x(i));
   }
   H_x.row(0) = r;
   H_x.row(1) = phi;

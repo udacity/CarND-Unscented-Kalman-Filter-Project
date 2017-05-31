@@ -57,7 +57,7 @@ public:
   /**
    * Destructor
    */
-  virtual ~UKF();
+  virtual ~FusionUKF();
 
   void UpdateRadar(MeasurementPackage meas_package);
 
@@ -80,10 +80,12 @@ private:
    */
   void _MotionPrediction(MatrixXd &Xsig_aug, double_t delta_t);
 
-  void _PredictMeanAndCovariance(VectorXd* x_out, MatrixXd* P_out,
+  MatrixXd _PredictMeanAndCovariance(VectorXd* x_out, MatrixXd* P_out,
                                  int norm_dim, MatrixXd &SIG);
 
-  MatrixXd Cart2Polar(const MatrixXd &Xsig);
+  void _PropagateNoise(MatrixXd *S);
+
+  void _GetCrossCovariance(MatrixXd &X_diff, MatrixXd &Z_diff);
 };
 
 

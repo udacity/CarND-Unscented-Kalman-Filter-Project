@@ -40,7 +40,7 @@ FusionUKF::FusionUKF() {
   time_us_ = 0;
 }
 
-FusionUKF::~UKF() {}
+FusionUKF::~FusionUKF() {}
 
 
 VectorXd FusionUKF::_GenerateWeights(int dim) {
@@ -118,9 +118,9 @@ void FusionUKF::_MotionPrediction(MatrixXd &Xsig_aug, double_t delta_t){
   VectorXd p_y = Xsig_aug.row(1);
   VectorXd v = Xsig_aug.row(2);
   VectorXd yaw = Xsig_aug.row(3);
-  VectorXd yawd = Xsig_aug.row(4)
+  VectorXd yawd = Xsig_aug.row(4);
   VectorXd nu_a = Xsig_aug.row(5);
-  VectorXd nu_yawdd = Xsig_aug(6);
+  VectorXd nu_yawdd = Xsig_aug.row(6);
 
   double_t threshold = 1e-3;
   int vec_len = 2 * n_aug_ + 1;
@@ -164,12 +164,15 @@ void FusionUKF::_MotionPrediction(MatrixXd &Xsig_aug, double_t delta_t){
  * @param x_out
  * @param P_out
  * @param norm_dim state/measurement vector dim needs to be normalized
- * @param SIG State: Xsig_pred_
+ * @param SIG
+ * State: Xsig_pred_
  * Measurement: Zsig
+ * @return X - x_
  */
-void FusionUKF::_PredictMeanAndCovariance(VectorXd *x_out, MatrixXd *P_out,
+MatrixXd FusionUKF::_PredictMeanAndCovariance(VectorXd *x_out, MatrixXd *P_out,
                                           int norm_dim, MatrixXd &SIG) {
-  VectorXd x = (SIG * weights_).tranpose();
+  VectorXd SIG_weights = SIG * weights_;
+  VectorXd x = SIG_weights.transpose();
 //  auto W?
   MatrixXd W = weights_.asDiagonal();
   // Column Duplication
@@ -187,4 +190,21 @@ void FusionUKF::_PredictMeanAndCovariance(VectorXd *x_out, MatrixXd *P_out,
 
   *x_out = x;
   *P_out = P;
+  return X_diff;
+}
+
+/**
+ * Propagate additive measurement noise
+ * @param S
+ */
+void FusionUKF::_PropagateNoise(MatrixXd *S) {
+  MatrixXd R = MatrixXd::Zero(n_z_, n_z_);
+  R(0, 0) = pow(std_radr_, 2);
+  R(1, 1) = pow(std_radphi_, 2);
+  R(2, 2) = pow(std_radrd_, 2);
+  *S = *S + R;
+}
+
+void FusionUKF::_GetCrossCovariance(MatrixXd &X_diff, MatrixXd &Z_diff) {
+
 }

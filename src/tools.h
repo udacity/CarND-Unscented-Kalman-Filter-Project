@@ -26,6 +26,8 @@ public:
   VectorXd CalculateRMSE(const vector<VectorXd> &estimations, const vector<VectorXd> &ground_truth);
 
   MatrixXd NormalizeAngle(MatrixXd &Z_diff, int dim);
+
+  MatrixXd Cart2Polar(const MatrixXd &Xsig);
 };
 
 #endif /* TOOLS_H_ */

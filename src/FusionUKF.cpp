@@ -159,12 +159,17 @@ void FusionUKF::_MotionPrediction(MatrixXd &Xsig_aug, double_t delta_t){
   Xsig_pred_.row(6) = nu_yawdd;
 }
 /**
+ *
  * (Xsig_pred_ * w).tranpose()
  * @param x_out
  * @param P_out
+ * @param norm_dim state/measurement vector dim needs to be normalized
+ * @param SIG State: Xsig_pred_
+ * Measurement: Zsig
  */
-void FusionUKF::_PredictMeanAndCovariance(VectorXd *x_out, MatrixXd *P_out) {
-  VectorXd x = (Xsig_pred_ * weights_).tranpose();
+void FusionUKF::_PredictMeanAndCovariance(VectorXd *x_out, MatrixXd *P_out,
+                                          int norm_dim, MatrixXd &SIG) {
+  VectorXd x = (SIG * weights_).tranpose();
 //  auto W?
   MatrixXd W = weights_.asDiagonal();
   // Column Duplication
@@ -172,43 +177,14 @@ void FusionUKF::_PredictMeanAndCovariance(VectorXd *x_out, MatrixXd *P_out) {
   row_vector = row_vector.transpose();
 
   MatrixXd x_mat = x * row_vector;
-  MatrixXd X_diff = Xsig_pred_ - x_mat;
+  MatrixXd X_diff = SIG - x_mat;
 
   // Normalization
-  // 3: yaw
-  tools.NormalizeAngle(X_diff, 3);
+  // For State  Xsig_pred 3: yaw
+  // For Measurement Zsig 1: phi
+  tools.NormalizeAngle(X_diff, norm_dim);
   MatrixXd P = X_diff * W * X_diff.transpose();
 
   *x_out = x;
   *P_out = P;
 }
-
-MatrixXd FusionUKF::Cart2Polar(const MatrixXd &XSig) {
-  int width = XSig.cols();
-  MatrixXd H_x = MatrixXd::Zero(3, width);
-
-  VectorXd p_x = XSig.row(0);
-  VectorXd p_y = XSig.row(1);
-  VectorXd v = XSig.row(2);
-  VectorXd yaw = XSig.row(3);
-
-  VectorXd v1 = cos(yaw.array()) * v.array();
-  VectorXd v2 = sin(yaw.array()) * v.array();
-  VectorXd r = sqrt(p_x.array().pow(2) + p_y.array().pow(2));
-  VectorXd phi = atan2(p_y.array(), p_x.array());
-  VectorXd r_dot = VectorXd::Zero(width);
-
-  double_t threshold = 1e-3;
-  for (int i = 0; i < width; i+=1) {
-    if (r(i) < threshold) {
-      r_dot(i) = 0;
-    } else {
-      r_dot(i) = (p_x(i) * v1(i) + p_y(i) * v2(i))/r(i);
-    }
-  }
-  H_x.row(0) = r;
-  H_x.row(1) = phi;
-  H_x.row(2) = r_dot;
-  return H_x;
-}
-

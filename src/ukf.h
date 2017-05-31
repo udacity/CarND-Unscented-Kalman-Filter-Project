@@ -3,6 +3,7 @@
 
 #include "measurement_package.h"
 #include "Eigen/Dense"
+#include "FusionUKF.h"
 #include <vector>
 #include <string>
 #include <fstream>
@@ -102,6 +103,9 @@ public:
    * @param meas_package The measurement at k+1
    */
   void UpdateRadar(MeasurementPackage meas_package);
+
+private:
+  FusionUKF fusionUKF;
 };
 
 #endif /* UKF_H */

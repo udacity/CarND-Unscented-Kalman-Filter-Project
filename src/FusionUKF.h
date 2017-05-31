@@ -61,16 +61,7 @@ public:
 
   void UpdateRadar(MeasurementPackage meas_package);
 
-  void Prediction();
-
-private:
-  Tools tools;
-
-  VectorXd _GenerateWeights(int dim);
-
-  void _InitState(MeasurementPackage meas_package);
-
-  void _InitProcessMatrix();
+  void Init(MeasurementPackage meas_package);
 
   MatrixXd _GenerateSigmaPoints();
 
@@ -85,7 +76,17 @@ private:
 
   void _PropagateNoise(MatrixXd *S);
 
-  void _GetCrossCovariance(MatrixXd &X_diff, MatrixXd &Z_diff);
+  MatrixXd _GetCrossCovariance(MatrixXd &X_diff, MatrixXd &Z_diff);
+private:
+  Tools tools;
+
+  VectorXd _GenerateWeights(int dim);
+
+  void _InitState(MeasurementPackage meas_package);
+
+  void _InitProcessMatrix();
+
+
 };
 
 

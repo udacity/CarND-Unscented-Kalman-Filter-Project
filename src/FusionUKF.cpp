@@ -37,10 +37,21 @@ FusionUKF::FusionUKF() {
 
   std_radrd_ = 0.3;
 
+  // Radar
+  n_z_ = 3;
+
   time_us_ = 0;
+
+  weights_ = _GenerateWeights(n_aug_);
 }
 
 FusionUKF::~FusionUKF() {}
+
+
+void FusionUKF::Init(MeasurementPackage meas_package) {
+  _InitState(meas_package);
+  _InitProcessMatrix();
+}
 
 
 VectorXd FusionUKF::_GenerateWeights(int dim) {
@@ -167,7 +178,7 @@ void FusionUKF::_MotionPrediction(MatrixXd &Xsig_aug, double_t delta_t){
  * @param SIG
  * State: Xsig_pred_
  * Measurement: Zsig
- * @return X - x_
+ * @return X - x_ or Z - z_
  */
 MatrixXd FusionUKF::_PredictMeanAndCovariance(VectorXd *x_out, MatrixXd *P_out,
                                           int norm_dim, MatrixXd &SIG) {
@@ -205,6 +216,16 @@ void FusionUKF::_PropagateNoise(MatrixXd *S) {
   *S = *S + R;
 }
 
-void FusionUKF::_GetCrossCovariance(MatrixXd &X_diff, MatrixXd &Z_diff) {
-
+/**
+ * X_diff * W * Z_diff.T
+ * @param X_diff
+ * @param Z_diff
+ * @return
+ */
+MatrixXd FusionUKF::_GetCrossCovariance(MatrixXd &X_diff, MatrixXd &Z_diff) {
+  return X_diff * weights_.asDiagonal() * Z_diff.transpose();
 }
+
+void FusionUKF::UpdateRadar(MeasurementPackage meas_package) {
+}
+

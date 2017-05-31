@@ -26,3 +26,5 @@ MatrixXd Tools::NormalizeAngle(MatrixXd &Z_diff, int dim) {
   }
   return Z_diff;
 }
+
+

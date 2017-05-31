@@ -81,6 +81,8 @@ private:
   void _MotionPrediction(MatrixXd &Xsig_aug, double_t delta_t);
 
   void _PredictMeanAndCovariance(VectorXd* x_out, MatrixXd* P_out);
+
+  MatrixXd Cart2Polar(const MatrixXd &Xsig);
 };
 
 

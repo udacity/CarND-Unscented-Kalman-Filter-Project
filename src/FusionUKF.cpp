@@ -168,7 +168,7 @@ void FusionUKF::_PredictMeanAndCovariance(VectorXd *x_out, MatrixXd *P_out) {
 //  auto W?
   MatrixXd W = weights_.asDiagonal();
   // Column Duplication
-  VectorXd row_vector = VectorXd::Ones(n_aug_);
+  VectorXd row_vector = VectorXd::Ones(2 * n_aug_ + 1);
   row_vector = row_vector.transpose();
 
   MatrixXd x_mat = x * row_vector;
@@ -179,5 +179,36 @@ void FusionUKF::_PredictMeanAndCovariance(VectorXd *x_out, MatrixXd *P_out) {
   tools.NormalizeAngle(X_diff, 3);
   MatrixXd P = X_diff * W * X_diff.transpose();
 
+  *x_out = x;
+  *P_out = P;
+}
+
+MatrixXd FusionUKF::Cart2Polar(const MatrixXd &XSig) {
+  int width = XSig.cols();
+  MatrixXd H_x = MatrixXd::Zero(3, width);
+
+  VectorXd p_x = XSig.row(0);
+  VectorXd p_y = XSig.row(1);
+  VectorXd v = XSig.row(2);
+  VectorXd yaw = XSig.row(3);
+
+  VectorXd v1 = cos(yaw.array()) * v.array();
+  VectorXd v2 = sin(yaw.array()) * v.array();
+  VectorXd r = sqrt(p_x.array().pow(2) + p_y.array().pow(2));
+  VectorXd phi = atan2(p_y.array(), p_x.array());
+  VectorXd r_dot = VectorXd::Zero(width);
+
+  double_t threshold = 1e-3;
+  for (int i = 0; i < width; i+=1) {
+    if (r(i) < threshold) {
+      r_dot(i) = 0;
+    } else {
+      r_dot(i) = (p_x(i) * v1(i) + p_y(i) * v2(i))/r(i);
+    }
+  }
+  H_x.row(0) = r;
+  H_x.row(1) = phi;
+  H_x.row(2) = r_dot;
+  return H_x;
 }
 

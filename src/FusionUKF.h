@@ -2,6 +2,7 @@
 #define UNSCENTEDKF_FUSIONUKF_H
 
 #include "measurement_package.h"
+#include "tools.h"
 #include "Eigen/Dense"
 #include <vector>
 #include <string>
@@ -60,7 +61,11 @@ public:
 
   void UpdateRadar(MeasurementPackage meas_package);
 
+  void Prediction();
+
 private:
+  Tools tools;
+
   VectorXd _GenerateWeights(int dim);
 
   void _InitState(MeasurementPackage meas_package);
@@ -73,7 +78,9 @@ private:
    *
    * @param Xsig_aug
    */
-  void _Prediction(MatrixXd &Xsig_aug, double_t delta_t);
+  void _MotionPrediction(MatrixXd &Xsig_aug, double_t delta_t);
+
+  void _PredictMeanAndCovariance(VectorXd* x_out, MatrixXd* P_out);
 };
 
 

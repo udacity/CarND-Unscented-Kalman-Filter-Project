@@ -1,6 +1,7 @@
 #ifndef TOOLS_H_
 #define TOOLS_H_
 #include <vector>
+#include <cmath>
 #include "Eigen/Dense"
 
 using Eigen::MatrixXd;
@@ -23,6 +24,10 @@ public:
   * A helper method to calculate RMSE.
   */
   VectorXd CalculateRMSE(const vector<VectorXd> &estimations, const vector<VectorXd> &ground_truth);
+
+  MatrixXd NormalizeAngle(MatrixXd &Z_diff, int dim);
+
+  VectorX
 
 };
 

@@ -79,6 +79,10 @@ void FusionUKF::_InitProcessMatrix() {
   P_(6, 6) = pow(std_yawdd_, 2);
 }
 
+/**
+ *
+ * @return
+ */
 MatrixXd FusionUKF::_GenerateSigmaPoints() {
   MatrixXd L = P_.llt().matrixL();
 
@@ -86,6 +90,7 @@ MatrixXd FusionUKF::_GenerateSigmaPoints() {
   MatrixXd Xsig_aug = MatrixXd(n_aug_, 2 * n_aug_ + 1);
 
 //  MatrixXd row_vector = MatrixXd::Ones(1, n_aug_);
+//  Column duplication
   VectorXd row_vector = VectorXd::Ones(n_aug_);
   row_vector = row_vector.transpose();
 
@@ -98,8 +103,8 @@ MatrixXd FusionUKF::_GenerateSigmaPoints() {
   right_block = x_mat - sqrt(lambda_) * L;
 
   Xsig_aug.col(0) = x_;
-  Xsig_aug.block(0, 1, 6, 7)  = left_block;
-  Xsig_aug.block(0, 7, 6, 14) = right_block;
+  Xsig_aug.block(0, 1, n_aug_, n_aug_ + 1)  = left_block;
+  Xsig_aug.block(0, n_aug_, n_aug_, 2 * n_aug_ + 1) = right_block;
 
   return Xsig_aug;
 }
@@ -108,8 +113,7 @@ MatrixXd FusionUKF::_GenerateSigmaPoints() {
  * Non linear mapping
  * @param Xsig_aug
  */
-void FusionUKF::_Prediction(MatrixXd &Xsig_aug, double_t delta_t) {
-  int vec_len = 2 * n_aug_ + 1;
+void FusionUKF::_MotionPrediction(MatrixXd &Xsig_aug, double_t delta_t){
   VectorXd p_x = Xsig_aug.row(0);
   VectorXd p_y = Xsig_aug.row(1);
   VectorXd v = Xsig_aug.row(2);
@@ -119,6 +123,7 @@ void FusionUKF::_Prediction(MatrixXd &Xsig_aug, double_t delta_t) {
   VectorXd nu_yawdd = Xsig_aug(6);
 
   double_t threshold = 1e-3;
+  int vec_len = 2 * n_aug_ + 1;
   VectorXd px_p = VectorXd::Zero(vec_len);
   VectorXd py_p = VectorXd::Zero(vec_len);
   for (int i = 0; i < vec_len; i+=1) {
@@ -153,5 +158,26 @@ void FusionUKF::_Prediction(MatrixXd &Xsig_aug, double_t delta_t) {
   Xsig_pred_.row(5) = nu_a;
   Xsig_pred_.row(6) = nu_yawdd;
 }
+/**
+ * (Xsig_pred_ * w).tranpose()
+ * @param x_out
+ * @param P_out
+ */
+void FusionUKF::_PredictMeanAndCovariance(VectorXd *x_out, MatrixXd *P_out) {
+  VectorXd x = (Xsig_pred_ * weights_).tranpose();
+//  auto W?
+  MatrixXd W = weights_.asDiagonal();
+  // Column Duplication
+  VectorXd row_vector = VectorXd::Ones(n_aug_);
+  row_vector = row_vector.transpose();
 
+  MatrixXd x_mat = x * row_vector;
+  MatrixXd X_diff = Xsig_pred_ - x_mat;
+
+  // Normalization
+  // 3: yaw
+  tools.NormalizeAngle(X_diff, 3);
+  MatrixXd P = X_diff * W * X_diff.transpose();
+
+}
 

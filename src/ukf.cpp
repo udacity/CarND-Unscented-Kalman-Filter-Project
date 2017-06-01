@@ -74,19 +74,34 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
   Complete this function! Make sure you switch between lidar and radar
   measurements.
   */
+  MeasurementPackage::SensorType sensorType = GetSensorType(meas_package);
+  /**
+   * TODO: Refactor initialization assignment
+   * Polar to Cart position initialization
+   */
   if(!is_initialized_) {
-    fusionUKF.Init(MeasurementPackage meas_package);
-    x_ = fusionUKF.x_;
-    P_ = fusionUKF.P_;
+    switch (sensorType) {
+      case MeasurementPackage::RADAR:
+        fusionUKF.Init(meas_package);
+        x_ = fusionUKF.x_;
+        P_ = fusionUKF.P_;
+        break;
+      case MeasurementPackage::LASER:
+        break;
+      default:
+        break;
+    }
     time_us_ = meas_package.timestamp_;
     is_initialized_ = true;
     return;
   }
 
   double_t delta_t = meas_package.timestamp_ - time_us_;
+  time_us_ = meas_package.timestamp_;
   double_t threshold = 1e-3;
-  if (delta_t >= 1e-3) {
-    Prediction(delta_t)
+
+  if (delta_t >= threshold) {
+    Prediction(delta_t);
   }
 }
 
@@ -103,6 +118,13 @@ void UKF::Prediction(double delta_t) {
   vector, x_. Predict sigma points, the state, and the state covariance matrix.
   */
   MatrixXd Xsig_aug = fusionUKF._GenerateSigmaPoints();
+  fusionUKF._MotionPrediction(Xsig_aug, delta_t);
+  VectorXd x_pred = VectorXd::Zero(n_aug_);
+  MatrixXd P_pred = MatrixXd::Zero(n_aug_, n_aug_);
+  fusionUKF.X_diff = fusionUKF._PredictMeanAndCovariance(&x_pred, &P_pred,
+                                                        3, fusionUKF.Xsig_pred_);
+  fusionUKF.x_pred = x_pred;
+  fusionUKF.P_pred = P_pred;
 }
 
 /**
@@ -118,6 +140,10 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
 
   You'll also need to calculate the lidar NIS.
   */
+  VectorXd z_pred = VectorXd::Zero(n_z_);
+  MatrixXd S = MatrixXd::Zero(n_z_, n_z_);
+  MatrixXd Zsig = tools.Cart2Polar(fusionUKF.Xsig_pred_);
+  MatrixXd Z_diff = fusionUKF._PredictMeanAndCovariance(&z_pred, &S, 1, Zsig);
 }
 
 /**
@@ -133,4 +159,9 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
 
   You'll also need to calculate the radar NIS.
   */
+}
+
+MeasurementPackage::SensorType UKF::GetSensorType(
+        const MeasurementPackage &measurement_pack) {
+  return measurement_pack.sensor_type_;
 }

@@ -23,6 +23,13 @@ public:
 
   MatrixXd Xsig_pred_;
 
+  // Cache intermediate results
+  MatrixXd x_pred;
+
+  MatrixXd P_pred;
+
+  MatrixXd X_diff;
+
   long long time_us_;
 
   double_t std_a_;

@@ -1,6 +1,7 @@
 #ifndef TOOLS_H_
 #define TOOLS_H_
 #include <vector>
+#include <cmath>
 #include "Eigen/Dense"
 
 using Eigen::MatrixXd;
@@ -24,6 +25,9 @@ public:
   */
   VectorXd CalculateRMSE(const vector<VectorXd> &estimations, const vector<VectorXd> &ground_truth);
 
+  MatrixXd NormalizeAngle(MatrixXd &Z_diff, int dim);
+
+  MatrixXd Cart2Polar(const MatrixXd &Xsig);
 };
 
 #endif /* TOOLS_H_ */

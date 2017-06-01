@@ -3,6 +3,7 @@
 
 #include "measurement_package.h"
 #include "Eigen/Dense"
+#include "FusionUKF.h"
 #include <vector>
 #include <string>
 #include <fstream>
@@ -68,6 +69,7 @@ public:
   double lambda_;
 
 
+  int n_z_;
   /**
    * Constructor
    */
@@ -96,12 +98,20 @@ public:
    * @param meas_package The measurement at k+1
    */
   void UpdateLidar(MeasurementPackage meas_package);
-
   /**
    * Updates the state and the state covariance matrix using a radar measurement
    * @param meas_package The measurement at k+1
    */
   void UpdateRadar(MeasurementPackage meas_package);
+
+private:
+  FusionUKF fusionUKF;
+
+  Tools tools;
+
+  MeasurementPackage::SensorType GetSensorType(
+          const MeasurementPackage &measurement_pack
+  );
 };
 
 #endif /* UKF_H */

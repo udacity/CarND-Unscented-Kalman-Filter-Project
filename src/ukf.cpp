@@ -24,10 +24,10 @@ UKF::UKF() {
   P_ = MatrixXd(5, 5);
 
   // Process noise standard deviation longitudinal acceleration in m/s^2
-  std_a_ = 30;
+  std_a_ = 3.0;
 
   // Process noise standard deviation yaw acceleration in rad/s^2
-  std_yawdd_ = 30;
+  std_yawdd_ = M_PI/8;
 
   // Laser measurement noise standard deviation position1 in m
   std_laspx_ = 0.15;
@@ -45,12 +45,31 @@ UKF::UKF() {
   std_radrd_ = 0.3;
 
   /**
-  TODO:
+   * Hint: one or more values initialized above might be wildly off...
+   */
+  P_.setIdentity(5, 5);
 
-  Complete the initialization. See ukf.h for other member properties.
+  // set the state dimension.
+  n_x_ = 5;
 
-  Hint: one or more values initialized above might be wildly off...
-  */
+  // set the augmented state dimension.
+  n_aug_ = 7;
+
+  lambda_ = 3 - n_aug_;
+
+  Xsig_pred_ = MatrixXd(n_x_, 2 * n_aug_ + 1);
+
+  weights_ = VectorXd(2 * n_aug_ + 1);
+
+  // set weights
+  double weight_0 = lambda_ / (lambda_ + n_aug_);
+  weights_(0) = weight_0;
+  for (int i = 1; i < 2 * n_aug + 1; i++) {  //2n+1 weights
+    double weight = 0.5 / (n_aug + lambda);
+    weights(i) = weight;
+  }
+
+  time_us_ = 0;
 }
 
 UKF::~UKF() {}
@@ -61,11 +80,53 @@ UKF::~UKF() {}
  */
 void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
   /**
-  TODO:
+   * Make sure you switch between lidar and radar measurements.
+   */
+  if (!is_initialized_) {
+    // check if measurement is from lidar or radar.
+    if (meas_package.sensor_type_ == MeasurementPackage::RADAR) {
+      // convert from polar to cartesian to initialize state
+      float ro = meas_package.raw_measurements_(0);
+      float phi = meas_package.raw_measurements_(1);
+      float ro_dot = meas_package.raw_measurements_(2);
+      x_(0) = ro * cos(phi);
+      x_(1) = ro * sin(phi);
+      x_(2) = ro_dot;
+      x_(3) = phi;
+      x_(4) = 0;
+    } else if (meas_package.sensor_type_ == MeasurementPackage::LASER) {
+      // initialize state
+      x_(0) = meas_package.raw_measurements_(0);
+      x_(1) = meas_package.raw_measurements_(1);
+      x_(2) = 0;
+      x_(3) = 0;
+      x_(4) = 0;
+    }
+    // save initial timestamp
+    time_us_ = meas_package.timestamp_;
 
-  Complete this function! Make sure you switch between lidar and radar
-  measurements.
-  */
+    // mark as initialized
+    is_initialized_ = true;
+
+    // initialization complete.
+    return;
+  }
+
+  // find delta_t in seconds
+  double delta_t = (meas_package.timestamp_ - time_us_) / 1000000.0;
+  time_us_ = meas_package.timestamp_;
+
+  // Call the prediction before the update
+  Prediction(delta_t);
+
+  // Call the corresponding update function according to measurement sensor type
+  if (meas_package.sensor_type_ == MeasurementPackage::RADAR && use_radar_) {
+    UpdateRadar(meas_package);
+  } else if (meas_package.sensor_type_ == MeasurementPackage::LASER
+      && use_laser_) {
+    UpdateLidar(meas_package);
+  }
+
 }
 
 /**

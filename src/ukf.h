@@ -13,6 +13,12 @@ using Eigen::VectorXd;
 class UKF {
 public:
 
+  ///* The current NIS for radar
+  double NIS_radar_;
+
+  ///* The current NIS for laser
+  double NIS_laser_;
+
   ///* initially set to false, set to true in first call of ProcessMeasurement
   bool is_initialized_;
 
@@ -66,7 +72,6 @@ public:
 
   ///* Sigma point spreading parameter
   double lambda_;
-
 
   /**
    * Constructor

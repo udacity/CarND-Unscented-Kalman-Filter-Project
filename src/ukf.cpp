@@ -9,6 +9,7 @@ using std::vector;
 
 /**
  * Initializes Unscented Kalman filter
+ * This is scaffolding, do not modify
  */
 UKF::UKF() {
   // if this is false, laser measurements will be ignored (except during init)
@@ -44,6 +45,8 @@ UKF::UKF() {
   // Radar measurement noise standard deviation radius change in m/s
   std_radrd_ = 0.3;
 
+  // Parameters above this line are scaffolding, do not modify
+  
   /**
   TODO:
 

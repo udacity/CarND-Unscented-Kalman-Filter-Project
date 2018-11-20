@@ -21,7 +21,7 @@ Note that the programs that need to be written to accomplish the project are src
 
 The program main.cpp has already been filled out, but feel free to modify it.
 
-Here is the main protcol that main.cpp uses for uWebSocketIO in communicating with the simulator.
+Here is the main protocol that main.cpp uses for uWebSocketIO in communicating with the simulator.
 
 
 INPUT: values provided by the simulator to the c++ program

@@ -12,4 +12,6 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
   /**
    * TODO: Calculate the RMSE here.
    */
+  cout<<(estimations - ground_truth).array().square();
+  return (estimations - ground_truth).array().square();
 }

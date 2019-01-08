@@ -12,6 +12,18 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
   /**
    * TODO: Calculate the RMSE here.
    */
-  cout<<(estimations - ground_truth).array().square();
-  return (estimations - ground_truth).array().square();
+
+  /**
+    Because of the old version of eigen, we can't use vector operations.
+  */
+  const int n = estimations.size();
+  VectorXd rmse;
+  VectorXd residue;
+  for(int i = 0; i < n; i++)
+  {
+    // Type estimations is std::vector
+    residue = estimations[i] - ground_truth[i]; 
+    
+  }
+  
 }

@@ -54,8 +54,13 @@ UKF::UKF() {
    * TODO: Complete the initialization. See ukf.h for other member properties.
    * Hint: one or more values initialized above might be wildly off...
    */
+  P_ << MatrixXd::Identity(5,5);
+  x_.setZero();
+  time_us_ = 0;
+
 }
 
+// Descontructor.
 UKF::~UKF() {}
 
 void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
@@ -63,6 +68,24 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
    * TODO: Complete this function! Make sure you switch between lidar and radar
    * measurements.
    */
+  is_initialized_ = true;
+  float dt = meas_package.timestamp_ -  time_us_;
+  time_us_ = meas_package.timestamp_;
+  Prediction(dt);
+  // What is the difference between Radar and Laser.
+  if (meas_package.sensor_type_ == meas_package.LASER)
+  {
+    use_laser_ = true;
+    x_.head(2) = meas_package.raw_measurements_;
+    UpdateLidar(meas_package);
+  }
+
+  if (meas_package.sensor_type_ == meas_package.RADAR)
+  {
+    use_radar_ = true;
+    x_.tail(3) = meas_package.raw_measurements_;
+    UpdateRadar(meas_package);
+  }
 }
 
 void UKF::Prediction(double delta_t) {
@@ -71,6 +94,9 @@ void UKF::Prediction(double delta_t) {
    * Modify the state vector, x_. Predict sigma points, the state, 
    * and the state covariance matrix.
    */
+  // Generate Sigma Points
+  
+
 }
 
 void UKF::UpdateLidar(MeasurementPackage meas_package) {

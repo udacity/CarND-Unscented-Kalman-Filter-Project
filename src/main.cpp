@@ -34,7 +34,7 @@ int main() {
 
   // Create a Kalman Filter instance
   UKF ukf;
-
+  std::cout<<"Initialized done in Main.cpp"<<std::endl;
   // used to compute the RMSE later
   Tools tools;
   vector<VectorXd> estimations;

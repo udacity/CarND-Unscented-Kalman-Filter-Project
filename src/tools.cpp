@@ -1,5 +1,5 @@
 #include "tools.h"
-
+#include <iostream>
 using Eigen::VectorXd;
 using std::vector;
 
@@ -13,18 +13,34 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
    * TODO: Calculate the RMSE here.
    */
 
-  const int n = estimations.size();
-  const int m = estimations[0].size();
-  VectorXd rmse;
-  VectorXd residue;
-  rmse.setZero(m);
-
-  for(int i = 0; i < n; i++)
+  // check the validity of the following inputs:
+  //  * the estimation vector size should not be zero
+  //  * the estimation vector size should equal ground truth vector size
+  VectorXd rmse(4);
+  rmse << 0, 0, 0, 0;
+  if (estimations.size() != ground_truth.size() || estimations.size() == 0)
   {
-    // Type estimations is std::vector
-    residue = estimations[i] - ground_truth[i];
-    rmse += residue.array().square().matrix();
+    std::cout << "Invalid estimation or ground_truth data" << std::endl;
+    return rmse;
   }
-  
-  return (rmse/n).cwiseSqrt();
+
+  // accumulate squared residuals
+  for (unsigned int i = 0; i < estimations.size(); ++i)
+  {
+
+    VectorXd residual = estimations[i] - ground_truth[i];
+
+    // coefficient-wise multiplication
+    residual = residual.array() * residual.array();
+    rmse += residual;
+  }
+
+  // calculate the mean
+  rmse = rmse / estimations.size();
+
+  // calculate the squared root
+  rmse = rmse.array().sqrt();
+
+  // return the result
+  return rmse;
 }

@@ -142,14 +142,16 @@ void UKF::Prediction(double delta_t) {
   lambda_ = 3 - n_x_;
   MatrixXd Xsig(n_x_, 2*n_x_ + 1);
   MatrixXd A = P_.llt().matrixL();
+  
   Xsig << x_,(sqrt(3)*A).colwise()+x_,(sqrt(3)* -A).colwise()+x_;
   
   // Augment Sigma Points
   VectorXd x_aug(n_aug_);
   MatrixXd Xsig_aug(n_aug_, 2*n_aug_+1);
   MatrixXd p_aug(n_aug_, n_aug_);
+  lambda_ = 3 - n_aug_ ;
   x_aug << x_, 0, 0;
-  p_aug.fill(0);
+  p_aug.fill(0.0);
   p_aug.topLeftCorner(n_x_, n_x_) = P_;
   p_aug.bottomRightCorner(2, 2) << std_a_*std_a_, 0, 0, std_yawdd_ * std_yawdd_;
   MatrixXd L = p_aug.llt().matrixL();
@@ -200,7 +202,6 @@ void UKF::Prediction(double delta_t) {
   }
   // predict state x and p
   // set weights
-  lambda_ = 3 - n_aug_;
   double weight_0 = lambda_ / (lambda_ + n_aug_);
   weights_(0) = weight_0;
   for (int i = 1; i < 2 * n_aug_ + 1; i++)
@@ -211,8 +212,21 @@ void UKF::Prediction(double delta_t) {
   // predict state mean
   x_ = (Xsig_pred_ * weights_.asDiagonal()).rowwise().sum();
   // predict state covariance matrix p
-  P_ = (Xsig_pred_.colwise() - x_) * weights_.asDiagonal() *
-      (Xsig_pred_.colwise() - x_).transpose();
+  // P_ = (Xsig_pred_.colwise() - x_) * weights_.asDiagonal() *
+  //     (Xsig_pred_.colwise() - x_).transpose();
+  P_.fill(0.0);
+  for (int i = 0; i < 2 * n_aug_ + 1; ++i)
+  { // iterate over sigma points
+    // state difference
+    VectorXd x_diff = Xsig_pred_.col(i) - x_;
+    // angle normalization
+    while (x_diff(3) > M_PI)
+      x_diff(3) -= 2. * M_PI;
+    while (x_diff(3) < -M_PI)
+      x_diff(3) += 2. * M_PI;
+
+    P_ = P_ + weights_(i) * x_diff * x_diff.transpose();
+  }
   cout<<"Prediction x:\n"<<x_<<"\n Prediction p:\n"<<P_<<endl;
 }
 

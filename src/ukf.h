@@ -97,6 +97,9 @@ class UKF {
 
   // Sigma point spreading parameter
   double lambda_;
+
+  // Customer variable
+  int n_sig;
 };
 
 #endif  // UKF_H

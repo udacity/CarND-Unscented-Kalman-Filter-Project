@@ -73,7 +73,7 @@ UKF::UKF() {
     0, 0, 1, 0, 0,
     0, 0, 0, 1, 0,
     0, 0, 0, 0, 1;
-  cout<<"Initialize Done in ukf.cpp"<<endl;
+  // cout<<"Initialize Done in ukf.cpp"<<endl;
 }
 
 // Descontructor.
@@ -122,21 +122,21 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
     return;
   }
   // Prediction step
-  cout<<"Prediction start"<<endl;
+  // cout<<"Prediction start"<<endl;
   double dt = (meas_package.timestamp_ - time_us_) / 1000000.0;
   time_us_ = meas_package.timestamp_;
   Prediction(dt);
-  cout<<"Prediction finished"<<endl;
+  // cout<<"Prediction finished"<<endl;
   
   // Update step
   if (meas_package.sensor_type_ == MeasurementPackage::LASER && use_laser_) {
-    cout<<"Update lidar"<<endl;
+    // cout<<"Update lidar"<<endl;
     UpdateLidar(meas_package);
   }
   
   else if (meas_package.sensor_type_ == MeasurementPackage::RADAR && use_radar_)
   {
-    cout<<"Update Radar"<<endl;
+    // cout<<"Update Radar"<<endl;
     UpdateRadar(meas_package);
   }
   
@@ -221,7 +221,7 @@ void UKF::Prediction(double delta_t) {
   // predict state covariance matrix p
   P_ = (Xsig_pred_.colwise() - x_) * weights_.asDiagonal() *
        (Xsig_pred_.colwise() - x_).transpose();
-  cout<<"Prediction x:\n"<<x_<<"\n Prediction p:\n"<<P_<<endl;
+  // cout<<"Prediction x:\n"<<x_<<"\n Prediction p:\n"<<P_<<endl;
 }
 
 void UKF::UpdateLidar(MeasurementPackage meas_package) {
@@ -380,7 +380,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
   // update state mean and covariance matrix
   x_ = x_ + K * z_diff;
   P_ = P_ - K * S * K.transpose();
-  cout<<"Radar Update done\n x:\n"<<x_<<"\n P:\n"<<P_<<endl;
+  // cout<<"Radar Update done\n x:\n"<<x_<<"\n P:\n"<<P_<<endl;
   // MatrixXd Tc = MatrixXd(n_x_, n_z);
   // // calculate cross correlation matrix
   // Tc = (Xsig_pred_.colwise() - x_) * weights_.asDiagonal() * (Zsig.colwise() - z_pred).transpose();
@@ -390,6 +390,6 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
   // // update state mean and covariance matrix
   // x_ += K * (z - z_pred);
   // P_ -= K * S * K.transpose();
-  cout<<"Radar Update Finished.\n"<<"x: \n"<<x_<<"P:\n"<<P_<<endl;
+  // cout<<"Radar Update Finished.\n"<<"x: \n"<<x_<<"P:\n"<<P_<<endl;
   // // TODO: calculate NIS
 }

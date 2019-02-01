@@ -98,7 +98,7 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
       x_.head(2) << meas_package.raw_measurements_;
 
       // x_ << meas_package.raw_measurements_, 0, 0, 0;
-      cout<<"First init is laser: \n"<<x_<<endl;
+      // cout<<"First init is laser: \n"<<x_<<endl;
     }
     
     else if (meas_package.sensor_type_ == MeasurementPackage::RADAR)
@@ -114,7 +114,7 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
       double v = sqrt(vx * vx + vy * vy);
       // Here I use the ro_dot as the v value.
       x_.head(3) << x, y, v; 
-      cout << "First init is radar: \n" << x_ << endl;
+      // cout << "First init is radar: \n" << x_ << endl;
     }
     is_initialized_ = true;
     time_us_ = meas_package.timestamp_;
